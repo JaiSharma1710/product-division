@@ -25,6 +25,9 @@ export function makeSourceFixture(options: FixtureOptions = {}): ArrayBuffer {
   set(3, 7, "REMARKS");
   set(3, 8, "SALES_PERS");
   set(3, 9, "PROJ_CODE");
+  set(4, 4, "ITEM_CODE");
+  set(5, 4, "ORDER_TYPE");
+  set(6, 4, "TRAN_TYPE");
 
   set(3, 18, "PS Product");
   set(3, 19, "LI Product");

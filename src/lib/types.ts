@@ -1,3 +1,5 @@
+import type { SourceLayout } from "@/lib/excel/detectLayout";
+
 export type OrderKind = "PS" | "LI";
 
 export interface BilingualText {
@@ -26,7 +28,8 @@ export interface ProductColumn {
   itemCode: string;
   orderType: string;
   tranType: string;
-  itemCodeSourceRow: 2 | 4 | null;
+  /** Sheet row the item code was read from; the fallback row is used only when the ITEM_CODE row is blank. */
+  itemCodeSourceRow: number | null;
 }
 
 export interface ExcludedProduct {
@@ -59,6 +62,7 @@ export interface ParsedSource {
   products: ProductColumn[];
   excludedProducts: ExcludedProduct[];
   issues: ValidationIssue[];
+  layout?: SourceLayout;
 }
 
 export interface HeaderRow {

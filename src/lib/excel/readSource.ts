@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { detectLayout } from "@/lib/excel/detectLayout";
 import { SOURCE } from "@/lib/excel/templateConfig";
 import { validateAllocationWorksheet } from "@/lib/excel/validateSource";
 import type { ParsedSource, ValidationIssue } from "@/lib/types";
@@ -11,11 +12,16 @@ function workbookIssue(en: string, hi: string): ParsedSource {
 export function readSourceWorkbook(data: ArrayBuffer | Uint8Array): ParsedSource {
   try {
     const workbook = XLSX.read(data, { type: "array", cellFormula: true, cellDates: false, dense: false });
-    const matchingName = workbook.SheetNames.find((name) => name.trim().toLowerCase() === SOURCE.SHEET_NAME);
+    // Prefer the sheet named "allocation"; otherwise use the first sheet laid out like one.
+    const matchingName = workbook.SheetNames.find((name) => name.trim().toLowerCase() === SOURCE.SHEET_NAME) ??
+      workbook.SheetNames.find((name) => {
+        const candidate = workbook.Sheets[name];
+        return Boolean(candidate?.["!ref"]) && detectLayout(candidate).ok;
+      });
     if (!matchingName) {
       return workbookIssue(
-        `The “${SOURCE.SHEET_NAME}” worksheet was not found. Use the main allocation workbook and keep the worksheet name unchanged.`,
-        `“${SOURCE.SHEET_NAME}” worksheet नहीं मिला। मुख्य allocation workbook चुनें और worksheet का नाम न बदलें।`,
+        `No allocation worksheet was found. Keep a worksheet named “${SOURCE.SHEET_NAME}”, or one with ITEM_CODE, ORDER_TYPE and TRAN_TYPE label rows.`,
+        `कोई allocation worksheet नहीं मिला। “${SOURCE.SHEET_NAME}” नाम वाला worksheet, या ITEM_CODE, ORDER_TYPE और TRAN_TYPE label पंक्तियों वाला worksheet रखें।`,
       );
     }
     const sheet = workbook.Sheets[matchingName];

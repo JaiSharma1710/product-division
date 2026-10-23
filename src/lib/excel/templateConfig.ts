@@ -35,30 +35,28 @@ export const ERP_CONSTANTS = {
 
 export const SOURCE = {
   SHEET_NAME: "allocation",
-  HEADER_ROW: 3,
-  FALLBACK_ITEM_CODE_ROW: 2,
-  ITEM_CODE_ROW: 4,
-  ORDER_TYPE_ROW: 5,
-  TRAN_TYPE_ROW: 6,
-  FIRST_EMPLOYEE_ROW: 7,
-  FIRST_PRODUCT_COLUMN: 18,
-  EMPLOYEE: {
-    code: 2,
-    name: 4,
-    shipSite: 5,
-    deliverySite: 6,
-    remarks: 7,
-    salesPerson: 8,
-    projectCode: 9,
-  },
+  /** Headings and metadata labels are searched for in this many rows from the top of the sheet. */
+  HEADER_SCAN_ROWS: 50,
+} as const;
+
+/** Labels that mark the product metadata rows. Matching ignores case, spaces, and punctuation. */
+export const METADATA_LABEL_ALIASES = {
+  itemCode: ["ITEM_CODE", "ITEM CODE"],
+  orderType: ["ORDER_TYPE", "ORDER TYPE"],
+  tranType: ["TRAN_TYPE", "TRAN TYPE", "TRANSACTION TYPE"],
 } as const;
 
 export const EMPLOYEE_HEADER_ALIASES = {
-  code: ["EMPLOYEE CODE", "EMP CODE", "EMP_CODE", "EMPLOYEE_CODE", "CODE"],
-  name: ["EMPLOYEE NAME", "EMP NAME", "EMP_NAME", "EMPLOYEE_NAME", "NAME"],
+  code: ["EMPLOYEE CODE", "EMP CODE", "EMP_CODE", "EMPLOYEE_CODE", "CODE", "EMP NO", "EMPLOYEE NO", "EMP ID", "EMPLOYEE ID"],
+  name: ["EMPLOYEE NAME", "EMP NAME", "EMP_NAME", "EMPLOYEE_NAME", "NAME", "NAME OF EMPLOYEE"],
   shipSite: ["SITE_CODE__SHIP", "SITE CODE SHIP", "SHIP SITE"],
   deliverySite: ["SITE_CODE__DLV", "SITE CODE DLV", "DELIVERY SITE"],
   remarks: ["REMARKS", "REMARK"],
   salesPerson: ["SALES_PERS", "SALES PERS", "SALESPERSON", "SALES PERSON"],
   projectCode: ["PROJ_CODE", "PROJECT CODE", "PROJ CODE"],
 } as const;
+
+export type EmployeeField = keyof typeof EMPLOYEE_HEADER_ALIASES;
+
+/** Employee fields that are written to the ERP files and must have a heading. */
+export const REQUIRED_EMPLOYEE_FIELDS: readonly EmployeeField[] = ["shipSite", "deliverySite", "salesPerson"];

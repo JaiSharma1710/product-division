@@ -30,4 +30,18 @@ describe("real allocation workbook product check", () => {
       expect(Object.keys(workbook.details[0])).toEqual(DETAIL_COLUMNS);
     }
   });
+
+  it("converts the PMD master workbook whose columns and rows are laid out differently", async () => {
+    const file = readFileSync("PMD MASTER (1).xlsx");
+    const result = await convertWorkbook(Uint8Array.from(file).buffer, new Date("2026-10-20T06:00:00.000Z"));
+
+    expect(result.issues.filter((issue) => issue.severity === "error")).toEqual([]);
+    expect(result.issues.map((issue) => issue.id).sort()).toEqual(["header-code", "information-column-J"]);
+    expect(result.generated).toBeDefined();
+    expect(result.summary?.employees).toBe(66);
+    expect(result.ps?.details).toHaveLength(318);
+    expect(result.li?.details).toHaveLength(396);
+    expect(result.ps?.details.some((row) => row.ITEM_CODE.startsWith("EMAIL"))).toBe(false);
+    expect(result.ps?.headers[0]).toMatchObject({ SITE_CODE__SHIP: "MM030", SITE_CODE__DLV: "MM037", SALES_PERS: "MPMPM781", REMARKS: "BOX - 4  WEIGHT - 55" });
+  });
 });

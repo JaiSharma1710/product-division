@@ -53,21 +53,25 @@ The site may also be hosted on any static file host by publishing `out/`.
 
 ## Source workbook contract
 
-The converter reads only the worksheet named `allocation` (case-insensitive, surrounding spaces ignored):
+The converter reads the worksheet named `allocation` (case-insensitive, surrounding spaces ignored). If no sheet has that name, it uses the first sheet that has the metadata labels below.
 
-- row 3: employee headings and product names;
-- row 4: product `ITEM_CODE`;
-- row 5: product `ORDER_TYPE`;
-- row 6: product `TRAN_TYPE`;
-- row 7 onward: employee allocations;
-- employee fields: B, E, F, G, H, and I; employee name in D is optional context and its heading is not required;
-- product search starts at column R and continues to the actual used range;
-- calculated total columns are excluded only when their heading clearly identifies them as totals;
-- hidden columns are read normally.
+Nothing is read from a fixed row or column. The layout is found from headings and labels in the top 50 rows, so columns may be moved, reordered, or inserted:
+
+- **Metadata rows**: the cells labelled `ITEM_CODE`, `ORDER_TYPE`, and `TRAN_TYPE` mark the product metadata rows. The column holding these labels is the *label column*.
+- **Heading row**: the row with the most employee headings. Product names, when present, are read from this row.
+- **Employee columns**, found by heading (matching ignores case, spaces, and punctuation; aliases are in `templateConfig.ts`):
+  - required: `SITE_CODE__SHIP`, `SITE_CODE__DLV`, `SALES_PERS`;
+  - optional: `REMARKS`, `PROJ_CODE`, employee code (`Emp Code`, `EMPLOYEE CODE`, …), and employee name. A missing optional column produces a warning and stays blank in the ERP files. Without an employee-code column, duplicate rows cannot be checked. Without a name heading, names are read from the label column.
+- **Employee rows** start on the row below the lowest heading or metadata row. Rows whose name or code reads `Total` are skipped.
+- **Product columns** start at the first column right of the label column that has a value in a metadata row, and continue to the end of the used range. Employee columns are skipped.
+- Product names are optional; the item code identifies the product when there is no name.
+- Calculated total columns are excluded only when their heading clearly identifies them as totals.
+- Columns whose filled cells are all non-numeric text (for example `EMAIL-ID`) are skipped with a warning.
+- Hidden columns are read normally.
 
 ### Constrained item-code fallback
 
-Row 4 is always the primary `ITEM_CODE` location. Row 2 is used only when the same product's row-4 cell is blank and the row-2 cell contains a saved scalar value. The fallback never infers a code from the product name, column, or prefix.
+The `ITEM_CODE` row is always the primary item-code location. The row directly above the heading row is used only when the same product's `ITEM_CODE` cell is blank and the fallback cell contains a saved scalar value. The fallback never infers a code from the product name, column, or prefix.
 
 A product missing `ITEM_CODE`, `ORDER_TYPE`, or `TRAN_TYPE` is excluded from both ERP outputs instead of blocking the conversion. The results screen shows every excluded product in a bilingual table with Yes/No status for each required metadata field. Quantities in excluded columns are not processed. Populated but conflicting or unsupported classifications still block generation because the app cannot safely choose PS or LI.
 
